@@ -1,10 +1,10 @@
-import SSC.Exceptions.InvalidLoginException;
+
 import SSC.SSCClient;
-import SSC.Scraper;
+import Scrapers.CreditScraper;
+import Scrapers.Scraper;
 import model.Course;
 
 import java.util.List;
-import java.util.Scanner;
 
 public class Main {
 
@@ -13,32 +13,27 @@ public class Main {
         java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(java.util.logging.Level.OFF);
         java.util.logging.Logger.getLogger("org.apache.http").setLevel(java.util.logging.Level.OFF);
 
-//        Scanner scan = new Scanner(System.in);
-//
-//        System.out.println("Enter username:");
-//        String username = scan.nextLine();
-//
-//        System.out.println("Enter password:");
-//        String password = scan.nextLine();
+        SSCClient client = new SSCClient();
 
-        SSCClient client = new SSCClient("chen1999","ViCh3251999!1");
+        client.authenticate("chen1999", "ViCh3251999!1");
 
-        try {
-            client.login();
-        } catch (InvalidLoginException e) {
-            System.out.println("Failed to log in with");
-            System.out.println("User: " + e.getUser());
-            System.out.println("Pass: " + e.getPass());
-            return;
-        }
+        CreditScraper scraper = new CreditScraper(client);
 
-        Scraper scraper = new Scraper(client);
-
+        List<Course> courseCredits = scraper.courseCredit();
         List<Course> transferCredits = scraper.transferCredit();
 
+        int total = 0;
+
+        System.out.println("Course Credits:");
+        for (Course c : courseCredits) {
+            System.out.println(c.getName() + " - " + c.getCredits());
+            total += c.getCredits();
+        }
+        System.out.println();
         System.out.println("Transfer Credits:");
         for (Course c : transferCredits) {
             System.out.println(c.getName() + " - " + c.getCredits());
+            total += c.getCredits();
         }
 
     }

@@ -1,7 +1,10 @@
-package SSC;
+package Scrapers;
 
-import SSC.Exceptions.InvalidLoginException;
-import com.gargoylesoftware.htmlunit.html.*;
+import SSC.SSCClient;
+import SSC.SSCURL;
+import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import model.Course;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -12,18 +15,33 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Scraper {
+public class CreditScraper {
 
     private final SSCClient client;
 
-    public Scraper(SSCClient client) {
+    public CreditScraper(SSCClient client) {
         this.client = client;
-        //make sure the client is logged in
-        try {
-            this.client.login();
-        } catch (InvalidLoginException e) {
-            System.out.println("Client is invalid");
+    }
+
+    public List<Course> courseCredit(){
+        String response = client.get(SSCURL.COURSE_CREDIT);
+        Element table = Jsoup.parse(response).getElementsByTag("tbody").get(0);
+        Elements credits = table.getElementsByTag("tr");
+
+        List<Course> courses = new ArrayList<>();
+
+        for(int i = 1; i < credits.size(); i++) {
+            Element credit = credits.get(i);
+            courses.add(parseCredit(credit));
         }
+        return courses;
+    }
+
+    private Course parseCredit(Element credit) {
+        Elements cols = credit.getElementsByTag("td");
+        String name = cols.get(0).text();
+        int credits = (int) Double.parseDouble(cols.get(2).attr("credits"));
+        return new Course(name, credits);
     }
 
     public List<Course> transferCredit(){

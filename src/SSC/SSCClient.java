@@ -1,13 +1,11 @@
 package SSC;
 
-import SSC.Exceptions.InvalidLoginException;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.sun.media.jfxmedia.logging.Logger;
 
 import java.io.IOException;
 
@@ -15,62 +13,58 @@ public class SSCClient {
 
     private final WebClient WEB_CLIENT = new WebClient(BrowserVersion.CHROME);
 
-    private final String USER;
-    private final String PASS;
-
-    private boolean loggedIn = false;
-
-    public SSCClient(String user, String pass){
-        USER = user;
-        PASS = pass;
-
+    public SSCClient(){
         WEB_CLIENT.getCookieManager().setCookiesEnabled(true);
-        WEB_CLIENT.getOptions().setCssEnabled(false);   //disable CSS so faster
+        WEB_CLIENT.getOptions().setCssEnabled(false);                   //disable CSS so faster
         WEB_CLIENT.getOptions().setThrowExceptionOnScriptError(false);  //ignore bad js
     }
 
-    public void login() throws InvalidLoginException {
-        if (isLoggedIn()) {
-            Logger.logMsg(Logger.INFO, "Already Logged in");
-            return;
+    public String get(SSCURL URL) {
+        return get(URL.toString());
+    }
+
+    public String get(String URL){
+        try {
+            return WEB_CLIENT.getPage(URL).getWebResponse().getContentAsString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
-        Logger.logMsg(Logger.INFO, "Logging in...");
+    }
+
+    /**
+     * Attempts to authenticate a user with a given username and password
+     * @param user  username to use
+     * @param pass  password to use
+     * @return      true if authentication successful, otherwise false
+     */
+    public boolean authenticate(String user, String pass){
         try{
+            System.out.println("Attempting to authenticate with user: " + user);
             HtmlPage loginPage = WEB_CLIENT.getPage(SSCURL.LOGIN.toString());
             HtmlForm loginForm = loginPage.getFirstByXPath("//form[@id='fm1']");
 
-            loginForm.getInputByName("username").setValueAttribute(USER);
-            loginForm.getInputByName("password").setValueAttribute(PASS);
+            loginForm.getInputByName("username").setValueAttribute(user);
+            loginForm.getInputByName("password").setValueAttribute(pass);
 
             loginForm.getInputByName("submit").click();
 
-            if (isLoggedIn()) {
-                Logger.logMsg(Logger.INFO, "Logged in");
-            } else {
-                throw new InvalidLoginException(USER, PASS);
+            if (isAuthenticated()) {
+                System.out.println("Authenticated " + user);
+                return true;
             }
         } catch (FailingHttpStatusCodeException | IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Failed to authenticate " + user);
+        return false;
     }
 
-    public String get(SSCURL sscurl){
-        return get(sscurl.toString());
-    }
-
-    public String get(String url){
-        try{
-            return WEB_CLIENT.getPage(url).getWebResponse().getContentAsString();
-        } catch (FailingHttpStatusCodeException | IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public boolean isLoggedIn(){
-        if (loggedIn) {
-            return true;
-        }
+    /**
+     * Get authentication status
+     * @return  true if client is authenticated, false otherwise
+     */
+    public boolean isAuthenticated(){
         try {
             HtmlPage loginPage = WEB_CLIENT.getPage(SSCURL.LOGIN.toString());
             DomElement message = loginPage.getElementById("msg");
@@ -80,8 +74,7 @@ public class SSCClient {
             if (!message.hasAttribute("class")) {
                 return false;
             }
-            loggedIn = message.getAttribute("class").equals("success");
-            return loggedIn;
+            return message.getAttribute("class").equals("success");
         } catch (IOException e) {
             e.printStackTrace();
         }
