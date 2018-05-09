@@ -1,8 +1,12 @@
 package ui;
 
 import SSC.SSCClient;
+import Scrapers.CourseScraper;
 import model.Student;
-import ui.tabs.*;
+import ui.tabs.CourseTab;
+import ui.tabs.CreditsTab;
+import ui.tabs.Tab;
+import ui.tabs.TimetableTab;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -35,11 +39,11 @@ public class CourseScheduler {
     private void generateTabs() {
         tabs = new JTabbedPane();
         tabList = new ArrayList<>();
-        TimetableTab timetableTab = new TimetableTab();
-        tabList.add(new CourseTab(sscClient, timetableTab));
+        CourseScraper courseScraper = new CourseScraper(sscClient);
+        TimetableTab timetableTab = new TimetableTab(courseScraper);
+        tabList.add(new CourseTab(courseScraper, timetableTab));
         tabList.add(new CreditsTab(sscClient, student));
         tabList.add(timetableTab);
-        tabList.add(new OptionsTab(sscClient));
         for(Tab tab : tabList) {
             tabs.add(tab.getTitle(), tab.getContent());
         }

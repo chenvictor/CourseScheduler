@@ -1,24 +1,33 @@
 package ui.tabs;
 
+import Scrapers.CourseScraper;
 import model.Course;
+import model.Section;
 import model.Timetable;
+import model.TimetableVisual;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.Queue;
 
 public class TimetableTab implements Tab, Observer {
 
+    private CourseScraper scraper;
     private Set<Course> courses;
+    private List<Timetable> timetables;
 
     private JPanel coursesListPanel;
+    private TimetableVisual visual;
 
     private JLabel numCoursesLabel;
     private JLabel numCreditsLabel;
 
-    public TimetableTab() {
+    public TimetableTab(CourseScraper scraper) {
+        this.scraper = scraper;
         courses = new LinkedHashSet<>();
+        visual = new TimetableVisual();
     }
 
     @Override
@@ -54,34 +63,85 @@ public class TimetableTab implements Tab, Observer {
     }
 
     private void generateTimetables() {
-        new Thread(() -> displayTimetables(createTimetables(courses))).start();
+        new Thread(() -> {
+            timetables = createTimetables(courses);
+            displayTimetables();
+        }).start();
     }
 
-    private void displayTimetables(List<Timetable> timetables) {
+    private void displayTimetables() {
         if (timetables.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No Timetables were generated!\nSome courses may conflict.");
         } else {
-            JFrame timetableFrame = new JFrame("Timetables");
+            StringBuilder courseList = new StringBuilder("Courses[" + courses.size() + "]:");
+            for(Course course : courses) {
+                courseList.append(" ").append(course);
+            }
+            JFrame timetableFrame = new JFrame("Timetables: " + courseList);
             timetableFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-            timetableFrame.setPreferredSize(new Dimension(400, 400));
+            JPanel wrapper = new JPanel();
+            wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
+
             JTabbedPane timetableTabs = new JTabbedPane();
+            timetableTabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
             int counter = 1;
+
+            //sort timetables
+            Collections.sort(timetables);
             for(Timetable table : timetables) {
                 timetableTabs.addTab(("Timetable " + counter++), table.getJContent());
             }
-            timetableFrame.add(timetableTabs);
+
+            wrapper.add(timetableTabs);
+            wrapper.add(visual.generateContent(timetables.get(0).getSections()));
+
+            timetableTabs.addChangeListener(e -> {
+                JComponent newContent = visual.generateContent(timetables.get(timetableTabs.getSelectedIndex()).getSections());
+                newContent.revalidate();
+                newContent.repaint();
+            });
+
+            timetableFrame.add(wrapper);
             timetableFrame.pack();
             timetableFrame.setVisible(true);
         }
     }
 
     private List<Timetable> createTimetables(Set<Course> courses) {
-        List<Timetable> testList = new ArrayList<>();
-        int count = 5;  //test 5 timetable tabs
-        for (int i = 0; i < count; i++) {
-            testList.add(new Timetable());
+        Queue<List<Section>> toTake = new PriorityQueue<>(Comparator.comparingInt(List::size));
+        for (Course course : courses) {
+            scraper.sections(course);
+            toTake.addAll(course.getSectionsByType().values());
         }
-        return testList;
+
+        List<Timetable> init = new ArrayList<>();
+        init.add(new Timetable());
+        return _createTimetables(toTake, init);
+    }
+
+    private List<Timetable> _createTimetables(Queue<List<Section>> toTake, List<Timetable> timetables) {
+        if (toTake.isEmpty()) {
+            //base case
+            return timetables;
+        }
+        //System.out.println("Total check: " + (toTake.size() + timetables.get(0).getSections().size()));
+        toTake = new ArrayDeque<>(toTake);  //clone toTakeList
+        List<Section> first = toTake.remove();     //reduction step
+        List<Timetable> fullList = new LinkedList<>();
+        for (Section section : first) {
+            List<Timetable> nextTimetables = new LinkedList<>();
+            for (Timetable table : timetables) {
+                Timetable next = new Timetable(table);  //clone table
+                if(next.add(section)) {
+                    nextTimetables.add(next);
+                }
+            }
+            if (nextTimetables.size() > 100) {
+                nextTimetables = nextTimetables.subList(0, 100);    //take only 100
+            }
+            fullList.addAll(_createTimetables(toTake, nextTimetables));
+        }
+        return fullList;
     }
 
     private void clearCourses() {

@@ -1,6 +1,8 @@
 package model;
 
-public class Course {
+import java.util.*;
+
+public class Course implements Iterable<Section>{
 
     private Subject subject;
     private String courseCode;
@@ -11,17 +13,41 @@ public class Course {
     private String description;
     private String preReqs;
 
+    private Map<String, Section> sections;
+
     Course(Subject subject, String courseCode) {
         this.subject = subject;
         this.courseCode = courseCode;
+        sections = new LinkedHashMap<>();
     }
 
-    public void display() {
-        System.out.println("Course: " + toString());
-        System.out.println("Title: " + getTitle());
-        System.out.println("Desc: " + getDescription());
-        System.out.println("Credits: " + getCredits());
-        System.out.println("Pre-reqs: "+ getPreReqs());
+    public Section getSection(String sectionCode) {
+        if (sections.containsKey(sectionCode)) {
+            return sections.get(sectionCode);
+        }
+        Section newSection = new Section(this, sectionCode);
+        sections.put(sectionCode, newSection);
+        return newSection;
+    }
+
+    public Map<SectionType, List<Section>> getSectionsByType() {
+        Map<SectionType, List<Section>> map = new LinkedHashMap<>();
+        for (Section section : this) {
+            SectionType type = section.getType();
+            List<Section> category;
+            if (map.containsKey(type)) {
+                category = map.get(type);
+            } else {
+                category = new LinkedList<>();
+                map.put(type, category);
+            }
+            category.add(section);
+        }
+        return map;
+    }
+
+    public int numSections() {
+        return sections.size();
     }
 
     public Subject getSubject() {
@@ -73,4 +99,23 @@ public class Course {
         return credits != 0 && title != null && description != null && preReqs != null;
     }
 
+    @Override
+    public Iterator<Section> iterator() {
+        return sections.values().iterator();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Course sections = (Course) o;
+        return Objects.equals(subject, sections.subject) &&
+                Objects.equals(courseCode, sections.courseCode);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(subject, courseCode);
+    }
 }

@@ -3,16 +3,16 @@ package Scrapers;
 import SSC.Campus;
 import SSC.SSCClient;
 import SSC.SSCURL;
-import model.Course;
-import model.Subject;
-import model.SubjectManager;
+import model.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import javax.swing.*;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CourseScraper {
@@ -104,6 +104,72 @@ public class CourseScraper {
         }
     }
 
+    public void sections(Course course) {
+        if (course.numSections() > 0) {
+            return; //already scraped
+        }
+        String courseURL = "https://courses.students.ubc.ca/cs/main?pname=subjarea&tname=subjareas&req=3&dept="
+                + course.getSubject().getCode() + "&course=" + course.getCourseCode();
+
+        Document document = Jsoup.parse(client.get(courseURL));
+        Element element = document.selectFirst("div.content.expand");
+        Element table = element.selectFirst("tbody");
+
+        Elements sectionRows = table.select("tr");
+
+        String[] temp = {"Waiting List", "Distance Education"};
+        List<String> blacklistTypes = Arrays.asList(temp);
+
+        String sectionCode = "ERROR";
+        String type;
+        String terms;
+        String days;
+        String start;
+        String end;
+        for (Element row : sectionRows) {
+            Elements columns = row.select("td");
+            String newCode = columns.get(1).text();
+            if (newCode.length() != 0) {
+                //not overflow from a previous section column
+                sectionCode = newCode.split(" ")[2];
+                //otherwise, section code is same as before
+            }
+            if (sectionCode.startsWith("V")) {
+                continue;   //ignore V sections
+            }
+            type = columns.get(2).text();
+            if (blacklistTypes.contains(type)) {
+                continue;
+            }
+            terms = columns.get(3).text();
+            days = columns.get(5).text();
+            start = columns.get(6).text();
+            end = columns.get(7).text();
+            Section section = course.getSection(sectionCode);
+            section.setType(SectionType.getType(type));
+
+            for (String day : days.split(" ")) {
+                for(String term : terms.split("-")){
+                    TimeBlock block = new TimeBlock(term, getDay(day), start, end);
+                    section.addBlock(block);
+                }
+            }
+        }
+
+    }
+
+    private DayOfWeek getDay(String day) {
+        switch (day) {
+            case "Mon": return DayOfWeek.MONDAY;
+            case "Tue": return DayOfWeek.TUESDAY;
+            case "Wed": return DayOfWeek.WEDNESDAY;
+            case "Thu": return DayOfWeek.THURSDAY;
+            case "Fri": return DayOfWeek.FRIDAY;
+            case "Sat": return DayOfWeek.SATURDAY;
+            default:    return DayOfWeek.SUNDAY;
+        }
+    }
+
     private String getSubjectURL() {
         if (subjectURL != null) {
             return subjectURL;
@@ -117,8 +183,8 @@ public class CourseScraper {
 
         //CampusSelect campus = promptSelectCampus(campuses);
         CampusSelect campus = campuses.get(0);
-        //Session session = promptSelectSession(sessions);
-        Session session = sessions.get(1);
+        Session session = promptSelectSession(sessions);
+        //Session session = sessions.get(1);
 
         subjectURL = SSCURL.COURSE_SUBJECTS.toString() + "&campuscd=" + campus.campus.getCode()
                 + "&sessyr=" + session.getYear() + "&sesscd=" + session.getCode();

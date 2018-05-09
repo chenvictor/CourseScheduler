@@ -1,6 +1,5 @@
 package ui.tabs;
 
-import SSC.SSCClient;
 import Scrapers.CourseScraper;
 import model.Course;
 import model.Subject;
@@ -14,7 +13,6 @@ import java.util.Observer;
 
 public class CourseTab extends Observable implements Tab {
 
-    private SSCClient client;
     private CourseScraper scraper;
     private Subject currentSubject;
     private Course currentCourse;
@@ -28,10 +26,9 @@ public class CourseTab extends Observable implements Tab {
 
     private boolean fetched = false;
 
-    public CourseTab(SSCClient client, Observer observer) {
+    public CourseTab(CourseScraper scraper, Observer observer) {
         addObserver(observer);
-        this.client = client;
-        this.scraper = new CourseScraper(client);
+        this.scraper = scraper;
         currentCourse = null;
     }
 
