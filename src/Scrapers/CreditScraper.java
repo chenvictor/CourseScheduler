@@ -1,11 +1,14 @@
 package Scrapers;
 
+import SSC.Campus;
 import SSC.SSCClient;
 import SSC.SSCURL;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import model.Course;
+import model.Subject;
+import model.SubjectManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -24,6 +27,9 @@ public class CreditScraper {
     }
 
     public List<Course> courseCredit(){
+        if(!client.requestAuthentication("Access Course Credits")) {
+            return Collections.emptyList();
+        }
         String response = client.get(SSCURL.COURSE_CREDIT);
         Element table = Jsoup.parse(response).getElementsByTag("tbody").get(0);
         Elements credits = table.getElementsByTag("tr");
@@ -34,22 +40,35 @@ public class CreditScraper {
             Element credit = credits.get(i);
             courses.add(parseCredit(credit));
         }
+
+        client.deAuthenticate();
+
         return courses;
     }
 
     private Course parseCredit(Element credit) {
         Elements cols = credit.getElementsByTag("td");
-        String name = cols.get(0).text();
+        String name[] = cols.get(0).text().split(" ");
+        String sub = name[0];
+        String code = name[1];
+
         int credits = (int) Double.parseDouble(cols.get(2).attr("credits"));
-        return new Course(name, credits);
+
+        Subject subject = SubjectManager.getInstance().getSubject(sub);
+        Course course = subject.getCourse(code);
+        course.setCredits(credits);
+        return course;
     }
 
-    public List<Course> transferCredit(){
+    public List<Course> transferCredit(Campus campus){
+        if(!client.requestAuthentication("Access Transfer Credits")) {
+            return Collections.emptyList();
+        }
         try {
             //set campus to vancouver
             HtmlPage page = client.getClient().getPage(SSCURL.TRANSFER_CREDIT.toString());
             HtmlSelect select = page.getElementByName("comboBox");
-            select.setSelectedIndex(1);
+            select.setSelectedIndex(campus.getTransferIndex());
 
             if (hasTransferCredit(page)){
                 return parseTransferCredits(page);
@@ -57,6 +76,8 @@ public class CreditScraper {
 
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            client.deAuthenticate();
         }
         return Collections.emptyList();
     }
@@ -80,9 +101,17 @@ public class CreditScraper {
 
     private Course parseTransferCredit(Element credit) {
         Elements cols = credit.getElementsByClass("listRow");
-        String name = cols.get(1).text();
+
+        String name[] = cols.get(1).text().split(" ");
+        String sub = name[0];
+        String code = name[1];
+
         int credits = Integer.parseInt(cols.get(3).text());
-        return new Course(name, credits);
+
+        Subject subject = SubjectManager.getInstance().getSubject(sub);
+        Course course = subject.getCourse(code);
+        course.setCredits(credits);
+        return course;
     }
 
 }
