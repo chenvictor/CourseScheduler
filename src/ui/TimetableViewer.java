@@ -378,6 +378,8 @@ public class TimetableViewer {
             for (Section sec : sections) {
                 for (TimeBlock blo : sec.getBlocks()) {
                     int dayIdx = dayToIdx(blo.getDay());
+                    if (dayIdx >= starts.length)
+                        continue;
                     starts[dayIdx] = Math.min(starts[dayIdx], blo.getStartIndex());
                     ends[dayIdx] = Math.max(ends[dayIdx], blo.getEndIndex());
                 }

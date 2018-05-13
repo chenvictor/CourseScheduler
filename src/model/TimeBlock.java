@@ -37,10 +37,7 @@ public class TimeBlock {
         //check the times don't overlap
         if (this.endHour <= block.startHour)
             return false;   //this ends before block starts
-        if (this.startHour >= block.endHour)
-            return false;   //this starts after block ends
-
-        return true;    //conflict!
+        return this.startHour < block.endHour;
     }
 
     public DayOfWeek getDay() {
