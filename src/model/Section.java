@@ -4,14 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Section {
+public class Section implements Comparable<Section> {
 
     private Course course;
     private String sectionCode;
+    private String term;
+
     private SectionType type;
     private List<TimeBlock> blocks;
 
-    public Section(Course course, String sectionCode) {
+    Section(Course course, String sectionCode) {
         this.course = course;
         this.sectionCode = sectionCode;
         this.blocks = new ArrayList<>();
@@ -29,11 +31,20 @@ public class Section {
         return course;
     }
 
-    public String getSectionCode() {
+    public void setTerm(String term) {
+        this.term = term;
+        course.addTerm(term);
+    }
+
+    String getTerm() {
+        return term;
+    }
+
+    String getSectionCode() {
         return sectionCode;
     }
 
-    public SectionType getType() {
+    SectionType getType() {
         return type;
     }
 
@@ -70,7 +81,11 @@ public class Section {
         return blocks;
     }
 
-    public int getLength() {
+    public boolean isUnscheduled() {
+        return blocks.isEmpty();
+    }
+
+    int getLength() {
         int total = 0;
         for (TimeBlock block : blocks) {
             total += block.getLength();
@@ -78,4 +93,13 @@ public class Section {
         return total;
     }
 
+    @Override
+    public String toString() {
+        return course.toString() + " " + this.sectionCode;
+    }
+
+    @Override
+    public int compareTo(Section o) {
+        return this.toString().compareTo(o.toString());
+    }
 }

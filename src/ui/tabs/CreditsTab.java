@@ -7,6 +7,7 @@ import model.Course;
 import model.Student;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,11 +20,10 @@ public class CreditsTab implements Tab{
     private boolean dontPrompt = false;
 
     private JLabel creditsLabel;
-    private JPanel gradesList;
+    private JTable gradesList;
+    private DefaultTableModel model;
 
     private Student student;
-
-    private boolean alternate = false;
 
     public CreditsTab(SSCClient sscClient, Student student) {
         this.student = student;
@@ -42,9 +42,12 @@ public class CreditsTab implements Tab{
         header.add(Box.createHorizontalStrut(50));
         header.add(fetch, BorderLayout.EAST);
 
-
-        gradesList = new JPanel();
-        gradesList.setLayout(new BoxLayout(gradesList, BoxLayout.Y_AXIS));
+        model = new UneditableTableModel();
+        gradesList = new JTable(model);
+        gradesList.setRowSelectionAllowed(false);
+        gradesList.setColumnSelectionAllowed(false);
+        model.addColumn("Course");
+        model.addColumn("Credit");
         JScrollPane gradeScroller = new JScrollPane(gradesList);
         gradeScroller.setPreferredSize(new Dimension(400, 400));
 
@@ -72,29 +75,18 @@ public class CreditsTab implements Tab{
     }
 
     private void updateCredits() {
-        alternate = false;
-        gradesList.removeAll();
+        //remove all rows
+        model.setRowCount(student.numCourses());
         int total = 0;
+        int row = 0;
         for(Course course : student) {
-            gradesList.add(createCreditPanel(course));
             total += course.getCredits();
+            model.setValueAt(course, row, 0);
+            model.setValueAt(course.getCredits(), row++, 1);
         }
         gradesList.revalidate();
         gradesList.repaint();
         creditsLabel.setText(total + " credit(s)");
-    }
-
-
-    private JPanel createCreditPanel(Course course) {
-        JPanel panel = new JPanel();
-        panel.add(new Label(course.toString()));
-        panel.add(Box.createHorizontalStrut(100));
-        panel.add(new Label(course.getCredits() + ".0"));
-        if(alternate) {
-            panel.setBackground(Color.LIGHT_GRAY);
-        }
-        alternate = !alternate;
-        return panel;
     }
 
     private void fetchGrades() {
@@ -134,6 +126,13 @@ public class CreditsTab implements Tab{
             if(prompt(true)) {
                 fetchGrades();
             }
+        }
+    }
+
+    private class UneditableTableModel extends DefaultTableModel {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
         }
     }
 

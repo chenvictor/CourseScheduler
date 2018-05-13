@@ -2,10 +2,11 @@ package model;
 
 import java.util.*;
 
-public class Course implements Iterable<Section>{
+public class Course implements Iterable<Section>, Comparable<Course>{
 
     private Subject subject;
     private String courseCode;
+    private List<String> terms;
 
     private int credits;
 
@@ -19,6 +20,16 @@ public class Course implements Iterable<Section>{
         this.subject = subject;
         this.courseCode = courseCode;
         sections = new LinkedHashMap<>();
+        terms = new ArrayList<>();
+    }
+
+    public void addTerm(String term) {
+        if (!terms.contains(term))
+            terms.add(term);
+    }
+
+    List<String> getTerms() {
+        return terms;
     }
 
     public Section getSection(String sectionCode) {
@@ -30,9 +41,11 @@ public class Course implements Iterable<Section>{
         return newSection;
     }
 
-    public Map<SectionType, List<Section>> getSectionsByType() {
+    public Map<SectionType, List<Section>> getSectionsByType(String term) {
         Map<SectionType, List<Section>> map = new LinkedHashMap<>();
         for (Section section : this) {
+            if (!section.getTerm().equals(term))
+                continue;   //not right term, skip
             SectionType type = section.getType();
             List<Section> category;
             if (map.containsKey(type)) {
@@ -117,5 +130,10 @@ public class Course implements Iterable<Section>{
     public int hashCode() {
 
         return Objects.hash(subject, courseCode);
+    }
+
+    @Override
+    public int compareTo(Course o) {
+        return this.toString().compareTo(o.toString());
     }
 }

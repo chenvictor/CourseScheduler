@@ -117,12 +117,12 @@ public class CourseScraper {
 
         Elements sectionRows = table.select("tr");
 
-        String[] temp = {"Waiting List", "Distance Education"};
+        String[] temp = {"Waiting List"};
         List<String> blacklistTypes = Arrays.asList(temp);
 
         String sectionCode = "ERROR";
         String type;
-        String terms;
+        String term;
         String days;
         String start;
         String end;
@@ -135,24 +135,33 @@ public class CourseScraper {
                 //otherwise, section code is same as before
             }
             if (sectionCode.startsWith("V")) {
-                continue;   //ignore V sections
+                continue;   //ignore V sections (multiterm)
             }
             type = columns.get(2).text();
             if (blacklistTypes.contains(type)) {
                 continue;
+            } else if (type.equals("Distance Education")) {
+                type = "Lecture";   //same as lecture
             }
-            terms = columns.get(3).text();
+            term = columns.get(3).text();
+            if (term.contains("-")) {
+                continue;
+            } else if (term.equals("A")) {
+                term = "1";
+            } else if (term.equals("C")) {
+                term = "2";
+            }
             days = columns.get(5).text();
             start = columns.get(6).text();
             end = columns.get(7).text();
             Section section = course.getSection(sectionCode);
             section.setType(SectionType.getType(type));
+            section.setTerm(term);
+            course.addTerm(term);
 
             for (String day : days.split(" ")) {
-                for(String term : terms.split("-")){
-                    TimeBlock block = new TimeBlock(term, getDay(day), start, end);
-                    section.addBlock(block);
-                }
+                TimeBlock block = new TimeBlock(term, getDay(day), start, end);
+                section.addBlock(block);
             }
         }
 

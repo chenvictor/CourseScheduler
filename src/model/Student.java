@@ -29,6 +29,10 @@ public class Student implements Iterable<Course>{
         return courseCredits;
     }
 
+    public int numCourses() {
+        return courseCredits.size() + transferCredits.size();
+    }
+
     public void setCourseCredits(List<Course> courseCredits) {
         this.courseCredits = courseCredits;
     }
@@ -39,26 +43,6 @@ public class Student implements Iterable<Course>{
 
     public void setTransferCredits(List<Course> transferCredits) {
         this.transferCredits = transferCredits;
-    }
-
-    public void printCredits(){
-        int total = 0;
-
-        System.out.println("Credits: ");
-        System.out.println();
-        System.out.println("Transfer Credits:");
-        for (Course c : getTransferCredits()) {
-            System.out.println(c + " - " + c.getCredits());
-            total += c.getCredits();
-        }
-        System.out.println();
-        System.out.println("Course Credits:");
-        for (Course c : getCourseCredits()) {
-            System.out.println(c + " - " + c.getCredits());
-            total += c.getCredits();
-        }
-
-        System.out.println("Total Credits: " + total);
     }
 
     public Campus getCampus() {
@@ -86,10 +70,10 @@ public class Student implements Iterable<Course>{
 
         @Override
         public Course next() {
-            if (transfer.hasNext()) {
-                return transfer.next();
+            if (course.hasNext()) {
+                return course.next();
             }
-            return course.next();
+            return transfer.next();
         }
     }
 

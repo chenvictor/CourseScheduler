@@ -2,20 +2,22 @@ package ui.tabs;
 
 import Scrapers.CourseScraper;
 import model.Course;
-import model.Section;
+import model.CourseTermCombo;
 import model.Timetable;
 import model.TimetableVisual;
+import ui.TimetableViewer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
-import java.util.Queue;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.TreeSet;
 
 public class TimetableTab implements Tab, Observer {
 
     private CourseScraper scraper;
-    private Set<Course> courses;
+    private TreeSet<CourseTermCombo> courses;
     private List<Timetable> timetables;
 
     private JPanel coursesListPanel;
@@ -26,7 +28,7 @@ public class TimetableTab implements Tab, Observer {
 
     public TimetableTab(CourseScraper scraper) {
         this.scraper = scraper;
-        courses = new LinkedHashSet<>();
+        courses = new TreeSet<>();
         visual = new TimetableVisual();
     }
 
@@ -52,96 +54,22 @@ public class TimetableTab implements Tab, Observer {
         infoHeaderPanel.add(numCreditsLabel);
 
         coursesListPanel = new JPanel();
-        coursesListPanel.setLayout(new BoxLayout(coursesListPanel, BoxLayout.Y_AXIS));
+        GridLayout layout = new GridLayout(0,1);
+        layout.setVgap(5);
+        coursesListPanel.setLayout(layout);
         JScrollPane gradeScroller = new JScrollPane(coursesListPanel);
         gradeScroller.setPreferredSize(new Dimension(400, 400));
         
         content.add(buttonsHeaderPanel);
         content.add(infoHeaderPanel);
-        content.add(new JScrollPane(coursesListPanel));
+        content.add(gradeScroller);
         return content;
     }
 
     private void generateTimetables() {
         new Thread(() -> {
-            timetables = createTimetables(courses);
-            displayTimetables();
+            TimetableViewer viewer = new TimetableViewer(courses);
         }).start();
-    }
-
-    private void displayTimetables() {
-        if (timetables.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No Timetables were generated!\nSome courses may conflict.");
-        } else {
-            StringBuilder courseList = new StringBuilder("Courses[" + courses.size() + "]:");
-            for(Course course : courses) {
-                courseList.append(" ").append(course);
-            }
-            JFrame timetableFrame = new JFrame("Timetables: " + courseList);
-            timetableFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-            JPanel wrapper = new JPanel();
-            wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
-
-            JTabbedPane timetableTabs = new JTabbedPane();
-            timetableTabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-            int counter = 1;
-
-            //sort timetables
-            Collections.sort(timetables);
-            for(Timetable table : timetables) {
-                timetableTabs.addTab(("Timetable " + counter++), table.getJContent());
-            }
-
-            wrapper.add(timetableTabs);
-            wrapper.add(visual.generateContent(timetables.get(0).getSections()));
-
-            timetableTabs.addChangeListener(e -> {
-                JComponent newContent = visual.generateContent(timetables.get(timetableTabs.getSelectedIndex()).getSections());
-                newContent.revalidate();
-                newContent.repaint();
-            });
-
-            timetableFrame.add(wrapper);
-            timetableFrame.pack();
-            timetableFrame.setVisible(true);
-        }
-    }
-
-    private List<Timetable> createTimetables(Set<Course> courses) {
-        Queue<List<Section>> toTake = new PriorityQueue<>(Comparator.comparingInt(List::size));
-        for (Course course : courses) {
-            scraper.sections(course);
-            toTake.addAll(course.getSectionsByType().values());
-        }
-
-        List<Timetable> init = new ArrayList<>();
-        init.add(new Timetable());
-        return _createTimetables(toTake, init);
-    }
-
-    private List<Timetable> _createTimetables(Queue<List<Section>> toTake, List<Timetable> timetables) {
-        if (toTake.isEmpty()) {
-            //base case
-            return timetables;
-        }
-        //System.out.println("Total check: " + (toTake.size() + timetables.get(0).getSections().size()));
-        toTake = new ArrayDeque<>(toTake);  //clone toTakeList
-        List<Section> first = toTake.remove();     //reduction step
-        List<Timetable> fullList = new LinkedList<>();
-        for (Section section : first) {
-            List<Timetable> nextTimetables = new LinkedList<>();
-            for (Timetable table : timetables) {
-                Timetable next = new Timetable(table);  //clone table
-                if(next.add(section)) {
-                    nextTimetables.add(next);
-                }
-            }
-            if (nextTimetables.size() > 100) {
-                nextTimetables = nextTimetables.subList(0, 100);    //take only 100
-            }
-            fullList.addAll(_createTimetables(toTake, nextTimetables));
-        }
-        return fullList;
     }
 
     private void clearCourses() {
@@ -161,19 +89,23 @@ public class TimetableTab implements Tab, Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        if(courses.add((Course) arg)) {
+        Course course = (Course) arg;
+        scraper.sections(course);
+        CourseTermCombo combo = new CourseTermCombo(course, this);
+        if (courses.add(combo)) {
             updateDisplay();
         }
     }
 
-    private boolean alternate = false;
+    public void remove(CourseTermCombo combo) {
+        courses.remove(combo);
+    }
 
-    private void updateDisplay() {
-        alternate = false;
+    public void updateDisplay() {
         coursesListPanel.removeAll();
         int total = 0;
-        for(Course course : courses) {
-            coursesListPanel.add(createCreditPanel(course));
+        for(CourseTermCombo course : courses) {
+            coursesListPanel.add(course.makePanel());
             total += course.getCredits();
         }
         coursesListPanel.revalidate();
@@ -192,26 +124,5 @@ public class TimetableTab implements Tab, Observer {
         numCreditsLabel.repaint();
     }
 
-
-    private JPanel createCreditPanel(Course course) {
-        JPanel panel = new JPanel();
-        JButton removeButton = new JButton("Remove");
-        removeButton.addActionListener(e -> removeCourse(course));
-        panel.add(removeButton);
-        panel.add(new Label(course.toString()));
-        panel.add(Box.createHorizontalStrut(100));
-        panel.add(new Label(course.getCredits() + ".0"));
-        if(alternate) {
-            panel.setBackground(Color.LIGHT_GRAY);
-        }
-        alternate = !alternate;
-        return panel;
-    }
-
-    private void removeCourse(Course course) {
-        if (courses.remove(course)) {
-            updateDisplay();
-        }
-    }
 
 }

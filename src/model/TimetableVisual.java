@@ -34,6 +34,10 @@ public class TimetableVisual {
         content.add(legend);
     }
 
+    public JPanel getContent() {
+        return content;
+    }
+
     private void initLegend() {
         JPanel legendPanel = new JPanel();
         term1 = new JPanel();
@@ -63,6 +67,7 @@ public class TimetableVisual {
             ColorTextCombo FRI_LABEL = headerLabel("Fri");
             switch(i) {
                 case 0: //set up times
+                case 6:
                     //header
                     table.setValueAt(TIME_LABEL, 0, i);
                     for (int j = 1; j < table.getRowCount(); j++) {
@@ -116,6 +121,7 @@ public class TimetableVisual {
         for (Section section : sections) {
             String sectionString = section.getCourse() + " " + section.getType() + ": " + section.getSectionCode();
             JLabel sectionLabel = new JLabel(sectionString);
+            sectionLabel.setForeground(Color.WHITE);
             sectionLabel.setBackground(colors.get(section));
             sectionLabel.setOpaque(true);
             if(section.getBlocks().get(0).getTerm().equals("1")) {
@@ -126,12 +132,13 @@ public class TimetableVisual {
         }
     }
 
-    public JComponent generateContent(List<Section> sections) {
+    public void update(List<Section> sections) {
         this.sections = sections;
         clearContent();
         updateContent();
         updateLegend();
-        return content;
+        this.content.revalidate();
+        this.content.repaint();
     }
 
     private void clearContent() {
@@ -202,7 +209,7 @@ public class TimetableVisual {
 
     private class ColorRenderer extends JLabel implements TableCellRenderer {
 
-        public ColorRenderer() {
+        ColorRenderer() {
             this.setFont(new Font("Comic Sans", Font.PLAIN, 10));
             this.setOpaque(true);
             this.setHorizontalAlignment(SwingConstants.CENTER);
@@ -228,16 +235,16 @@ public class TimetableVisual {
         private Color color;
         private String text;
 
-        public ColorTextCombo(Color color, String text) {
+        ColorTextCombo(Color color, String text) {
             this.color = color;
             this.text = text;
         }
 
-        public Color getColor() {
+        Color getColor() {
             return color;
         }
 
-        public String getText() {
+        String getText() {
             return text;
         }
 

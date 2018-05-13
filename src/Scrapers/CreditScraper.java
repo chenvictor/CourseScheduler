@@ -3,6 +3,7 @@ package Scrapers;
 import SSC.Campus;
 import SSC.SSCClient;
 import SSC.SSCURL;
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSelect;
@@ -73,10 +74,11 @@ public class CreditScraper {
             if (hasTransferCredit(page)){
                 return parseTransferCredits(page);
             }
-
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
+        } catch (ElementNotFoundException e) {
+            System.out.println("No Transfer Credits");
+        }finally {
             client.deAuthenticate();
         }
         return Collections.emptyList();
