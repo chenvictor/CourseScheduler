@@ -6,8 +6,6 @@ import model.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.time.DayOfWeek;
 import java.util.*;
@@ -15,7 +13,7 @@ import java.util.List;
 
 public class TimetableViewer {
 
-    private SSCClient client;
+    private final SSCClient client;
 
     /*
      *  Maximum number of course distributions to consider
@@ -29,16 +27,16 @@ public class TimetableViewer {
     private JComboBox<String> term2Selector;
     private TimetableVisual visual;
 
-    private List<Course> term1;
-    private List<Course> term2;
+    private final List<Course> term1;
+    private final List<Course> term2;
     private List<CourseDistribution> distributions;
     private LinkedList<CourseCombination> baseTerm1;
     private LinkedList<CourseCombination> baseTerm2;
 
     private List<Section> currentSections;
 
-    private Map<CourseDistribution, List<CourseCombination>> term1Combinations;
-    private Map<CourseDistribution, List<CourseCombination>> term2Combinations;
+    private final Map<CourseDistribution, List<CourseCombination>> term1Combinations;
+    private final Map<CourseDistribution, List<CourseCombination>> term2Combinations;
 
     public TimetableViewer(SSCClient client, TreeSet<CourseTermCombo> combos) {
         this.client = client;
@@ -184,8 +182,8 @@ public class TimetableViewer {
     /**
      * Generate valid CourseCombinations recursively
      * @param toAdd     List of Course SectionTypes to add (Lecture, Lab, Tutorial, etc)
-     * @param rsf
-     * @return
+     * @param rsf       base case
+     * @return          A list of CouseCombinations
      */
     private LinkedList<CourseCombination> generateCombinations(LinkedList<List<Section>> toAdd, LinkedList<CourseCombination> rsf) {
         if (toAdd.isEmpty()) {
@@ -257,8 +255,8 @@ public class TimetableViewer {
     }
 
     private class CourseDistribution implements Comparable<CourseDistribution>{
-        private SortedSet<Course> term1;
-        private SortedSet<Course> term2;
+        private final SortedSet<Course> term1;
+        private final SortedSet<Course> term2;
 
         CourseDistribution() {
             this.term1 = new TreeSet<>();
@@ -329,7 +327,7 @@ public class TimetableViewer {
 
     private class CourseCombination implements Iterable<Section>, Comparable<CourseCombination>{
 
-        private List<Section> sections;
+        private final List<Section> sections;
 
         CourseCombination() {
             sections = new LinkedList<>();
@@ -339,7 +337,7 @@ public class TimetableViewer {
             sections = new LinkedList<>(origin.sections);
         }
 
-        public boolean add(Section section) {
+        boolean add(Section section) {
             for (Section sec : sections) {
                 if (section.conflicts(sec))
                     return false;

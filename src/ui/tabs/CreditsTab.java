@@ -14,7 +14,7 @@ import java.awt.event.ActionListener;
 
 public class CreditsTab implements Tab{
 
-    private SSCClient client;
+    private final SSCClient client;
 
     private boolean fetched = false;
     private boolean dontPrompt = false;
@@ -23,7 +23,7 @@ public class CreditsTab implements Tab{
     private JTable gradesList;
     private DefaultTableModel model;
 
-    private Student student;
+    private final Student student;
 
     public CreditsTab(SSCClient sscClient, Student student) {
         this.student = student;

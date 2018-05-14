@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Timetable implements Comparable{
 
-    private List<Section> sections;
+    private final List<Section> sections;
 
     public Timetable() {
         sections = new LinkedList<>();

@@ -60,8 +60,8 @@ public class Student implements Iterable<Course>{
 
     private class CourseIterator implements Iterator<Course> {
 
-        private Iterator<Course> transfer = transferCredits.iterator();
-        private Iterator<Course> course = courseCredits.iterator();
+        private final Iterator<Course> transfer = transferCredits.iterator();
+        private final Iterator<Course> course = courseCredits.iterator();
 
         @Override
         public boolean hasNext() {

@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Course implements Iterable<Section>, Comparable<Course>{
 
-    private Subject subject;
+    private final Subject subject;
     private String courseCode;
     private List<String> terms;
 

@@ -13,7 +13,7 @@ import java.util.List;
 
 public class SSCWorklist {
 
-    private List<Section> sections;
+    private final List<Section> sections;
 
     public SSCWorklist (List<Section> sections) {
         this.sections = sections;

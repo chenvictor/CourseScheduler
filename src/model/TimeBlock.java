@@ -4,11 +4,11 @@ import java.time.DayOfWeek;
 
 public class TimeBlock {
 
-    private String term;
-    private DayOfWeek day;
+    private final String term;
+    private final DayOfWeek day;
     private int startHour;  //times in 24 hour format
     private int endHour;    //eg, 2:30pm = 1430
-    private boolean unScheduled;
+    private final boolean unScheduled;
 
     public TimeBlock (String term, DayOfWeek day, String start, String end) {
         this.term = term;
@@ -22,11 +22,11 @@ public class TimeBlock {
         }
     }
 
-    public boolean sameTerm(TimeBlock block) {
+    boolean sameTerm(TimeBlock block) {
         return this.term.equals(block.term);
     }
 
-    public boolean conflicts(TimeBlock block) {
+    boolean conflicts(TimeBlock block) {
         if (unScheduled) {
             return true;
         }
@@ -44,7 +44,7 @@ public class TimeBlock {
         return day;
     }
 
-    public String getTerm() {
+    String getTerm() {
         return this.term;
     }
 

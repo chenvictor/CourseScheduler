@@ -22,7 +22,7 @@ public class CourseScraper {
     private String subjectURL;
 
     private boolean scrapedSubjects;
-    private List<Subject> scraped;
+    private final List<Subject> scraped;
 
     public CourseScraper(SSCClient client) {
         this.client = client;
@@ -237,8 +237,8 @@ public class CourseScraper {
     }
 
     private class CampusSelect {
-        private String title;
-        private Campus campus;
+        private final String title;
+        private final Campus campus;
 
         CampusSelect(String title, Campus campus) {
             this.title = title;
@@ -260,8 +260,8 @@ public class CourseScraper {
     }
 
     private class Session {
-        private int year;
-        private char code;
+        private final int year;
+        private final char code;
 
         Session(String text) {
             String[] data = text.split(" ");

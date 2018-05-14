@@ -8,7 +8,7 @@ public class SubjectManager implements Iterable<Subject>{
 
     private static SubjectManager instance;
 
-    private Map<String, Subject> subjects;
+    private final Map<String, Subject> subjects;
 
     public static SubjectManager getInstance(){
         if (instance == null) {

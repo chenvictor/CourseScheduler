@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class SectionType {
 
-    private static Map<String, SectionType> types = new HashMap<>();
+    private static final Map<String, SectionType> types = new HashMap<>();
 
     public static SectionType getType(String typeString) {
         if (types.containsKey(typeString)) {

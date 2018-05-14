@@ -6,12 +6,12 @@ import java.util.Objects;
 
 public class Section implements Comparable<Section> {
 
-    private Course course;
-    private String sectionCode;
+    private final Course course;
+    private final String sectionCode;
     private String term;
 
     private SectionType type;
-    private List<TimeBlock> blocks;
+    private final List<TimeBlock> blocks;
 
     Section(Course course, String sectionCode) {
         this.course = course;

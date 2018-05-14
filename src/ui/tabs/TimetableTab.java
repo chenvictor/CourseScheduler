@@ -5,7 +5,6 @@ import Scrapers.CourseScraper;
 import model.Course;
 import model.CourseTermCombo;
 import model.Timetable;
-import model.TimetableVisual;
 import ui.TimetableViewer;
 
 import javax.swing.*;
@@ -17,13 +16,12 @@ import java.util.TreeSet;
 
 public class TimetableTab implements Tab, Observer {
 
-    private SSCClient client;
-    private CourseScraper scraper;
-    private TreeSet<CourseTermCombo> courses;
+    private final SSCClient client;
+    private final CourseScraper scraper;
+    private final TreeSet<CourseTermCombo> courses;
     private List<Timetable> timetables;
 
     private JPanel coursesListPanel;
-    private TimetableVisual visual;
 
     private JLabel numCoursesLabel;
     private JLabel numCreditsLabel;
@@ -32,7 +30,6 @@ public class TimetableTab implements Tab, Observer {
         this.client = client;
         this.scraper = scraper;
         courses = new TreeSet<>();
-        visual = new TimetableVisual();
     }
 
     @Override

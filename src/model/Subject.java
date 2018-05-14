@@ -11,7 +11,7 @@ public class Subject implements Iterable<Course> {
 
     private String title;   //more descriptive title
     private String facultySchool;
-    private Map<String, Course> courses;
+    private final Map<String, Course> courses;
 
     public void setTitle(String title) {
         this.title = title;

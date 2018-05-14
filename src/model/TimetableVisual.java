@@ -9,19 +9,19 @@ import java.util.List;
 
 public class TimetableVisual {
 
-    private JPanel content;
+    private final JPanel content;
     private JTable table;
     private JScrollPane legend;
     private JPanel term1;
     private JPanel term2;
 
     private List<Section> sections = Collections.emptyList();
-    private Map<Section, Color> colors = new HashMap<>();
-    private Color[] colorArray = {
+    private final Map<Section, Color> colors = new HashMap<>();
+    private final Color[] colorArray = {
             Color.BLUE, Color.RED, Color.MAGENTA,
             Color.GRAY, Color.LIGHT_GRAY, Color.ORANGE, Color.PINK, Color.YELLOW, Color.GREEN
     };
-    private List<Color> darkColors = Arrays.asList(Arrays.copyOf(colorArray, 3));
+    private final List<Color> darkColors = Arrays.asList(Arrays.copyOf(colorArray, 3));
     private int colorIndex = 0;
 
     public TimetableVisual() {
@@ -258,8 +258,8 @@ public class TimetableVisual {
 
     private class ColorTextCombo {
 
-        private Color color;
-        private String text;
+        private final Color color;
+        private final String text;
 
         ColorTextCombo(Color color, String text) {
             this.color = color;

@@ -16,7 +16,7 @@ import java.util.List;
 
 public class CourseScheduler {
 
-    private Student student;
+    private final Student student;
     private SSCClient sscClient;
 
     private JFrame frame;

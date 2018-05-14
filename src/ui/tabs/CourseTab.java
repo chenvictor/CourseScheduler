@@ -13,7 +13,7 @@ import java.util.Observer;
 
 public class CourseTab extends Observable implements Tab {
 
-    private CourseScraper scraper;
+    private final CourseScraper scraper;
     private Subject currentSubject;
     private Course currentCourse;
 
@@ -21,8 +21,6 @@ public class CourseTab extends Observable implements Tab {
     private JPanel subjectPanel;
     private JComboBox courseSelector;
     private JPanel coursePanel;
-
-    private JPanel inner;
 
     private boolean fetched = false;
 
@@ -68,7 +66,7 @@ public class CourseTab extends Observable implements Tab {
         search.add(courseSelector);
         search.add(addButton);
 
-        inner = new JPanel();
+        JPanel inner = new JPanel();
         inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
         subjectPanel = new JPanel();
         subjectPanel.setLayout(new BoxLayout(subjectPanel, BoxLayout.Y_AXIS));

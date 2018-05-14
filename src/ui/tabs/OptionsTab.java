@@ -6,7 +6,7 @@ import javax.swing.*;
 
 public class OptionsTab implements Tab {
 
-    private SSCClient client;
+    private final SSCClient client;
 
     public OptionsTab(SSCClient client) {
         this.client = client;

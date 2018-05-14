@@ -5,7 +5,7 @@ public enum Campus {
     VANCOUVER("UBC", 1, 0),
     OKANAGAN("UBCO", 2, 1);
 
-    private String code;
+    private final String code;
     private int transferIndex;
     private int courseIndex;
 
