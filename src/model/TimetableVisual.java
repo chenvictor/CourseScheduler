@@ -51,9 +51,11 @@ public class TimetableVisual {
     }
 
     private void initTable() {
-        table = new JTable(23,12);
+        table = new JTable(29,12);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.setRowHeight(15);
+        table.setEnabled(false);
+        table.setDragEnabled(false);
         for (int i = 0; i < table.getColumnCount(); i++) {
             table.getColumnModel().getColumn(i).setCellRenderer(new ColorRenderer());
             table.getColumnModel().getColumn(i).setPreferredWidth(30);

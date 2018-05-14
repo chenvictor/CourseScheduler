@@ -95,7 +95,9 @@ public class TimetableViewer {
         termPanel = new JPanel();
         termPanel.setLayout(new BoxLayout(termPanel, BoxLayout.X_AXIS));
         term1Selector = new JComboBox<>();
+        term1Selector.setMaximumRowCount(3);
         term2Selector = new JComboBox<>();
+        term2Selector.setMaximumRowCount(3);
         term1Selector.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 updateVisual();
@@ -186,12 +188,12 @@ public class TimetableViewer {
      * @return          A list of CouseCombinations
      */
     private LinkedList<CourseCombination> generateCombinations(LinkedList<List<Section>> toAdd, LinkedList<CourseCombination> rsf) {
-        if (toAdd.isEmpty()) {
-            //base case
-            return rsf;
-        }
         toAdd = (LinkedList<List<Section>>) toAdd.clone();
         List<Section> first = toAdd.poll();
+        if (first == null) {
+            //base case, implies toAdd is empty
+            return rsf;
+        }
         LinkedList<CourseCombination> all = new LinkedList<>();
         for (CourseCombination combo : rsf) {
             LinkedList<CourseCombination> nextCombos = new LinkedList<>();

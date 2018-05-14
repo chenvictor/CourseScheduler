@@ -19,10 +19,13 @@ public class CourseScraper {
 
     private final SSCClient client;
 
-    private String subjectURL;
-
     private boolean scrapedSubjects;
     private final List<Subject> scraped;
+
+    private static final String[] temp = {"Waiting List"};
+    private static final List<String> blacklistTypes = Arrays.asList(temp);
+    private static final String[] temp2 = {"Distance Education", "Flexible Learning"};
+    private static final List<String> lectureEquivalents = Arrays.asList(temp2);
 
     public CourseScraper(SSCClient client) {
         this.client = client;
@@ -117,9 +120,6 @@ public class CourseScraper {
 
         Elements sectionRows = table.select("tr");
 
-        String[] temp = {"Waiting List"};
-        List<String> blacklistTypes = Arrays.asList(temp);
-
         String sectionCode = "ERROR";
         String type;
         String term;
@@ -140,7 +140,7 @@ public class CourseScraper {
             type = columns.get(2).text();
             if (blacklistTypes.contains(type)) {
                 continue;
-            } else if (type.equals("Distance Education")) {
+            } else if (lectureEquivalents.contains(type)) {
                 type = "Lecture";   //same as lecture
             }
             term = columns.get(3).text();
@@ -180,8 +180,8 @@ public class CourseScraper {
     }
 
     private String getSubjectURL() {
-        if (subjectURL != null) {
-            return subjectURL;
+        if (client.getSetupURL() != null) {
+            return client.getSetupURL();
         }
         Elements selectors = Jsoup.parse(client.get(SSCURL.COURSE_MAINPAGE)).select("ul.dropdown-menu");
         Element campusElement = selectors.get(3);
@@ -195,7 +195,7 @@ public class CourseScraper {
         Session session = promptSelectSession(sessions);
         //Session session = sessions.get(1);
 
-        subjectURL = SSCURL.COURSE_SUBJECTS.toString() + "&campuscd=" + campus.campus.getCode()
+        String subjectURL = SSCURL.COURSE_SUBJECTS.toString() + "&campuscd=" + campus.campus.getCode()
                 + "&sessyr=" + session.getYear() + "&sesscd=" + session.getCode();
         //save subjectURL somewhere
         client.setSetupURL(subjectURL);
