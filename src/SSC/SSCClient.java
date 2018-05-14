@@ -21,6 +21,16 @@ public class SSCClient {
 
     private boolean saveAuthentication;
 
+    private String setupURL;
+
+    public String getSetupURL() {
+        return setupURL;
+    }
+
+    public void setSetupURL(String setupURL) {
+        this.setupURL = setupURL;
+    }
+
     public SSCClient(){
         WEB_CLIENT.getCookieManager().setCookiesEnabled(true);
         WEB_CLIENT.getOptions().setCssEnabled(false);                   //disable CSS so faster

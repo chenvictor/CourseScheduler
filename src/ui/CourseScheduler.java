@@ -40,7 +40,7 @@ public class CourseScheduler {
         tabs = new JTabbedPane();
         tabList = new ArrayList<>();
         CourseScraper courseScraper = new CourseScraper(sscClient);
-        TimetableTab timetableTab = new TimetableTab(courseScraper);
+        TimetableTab timetableTab = new TimetableTab(sscClient, courseScraper);
         tabList.add(new CourseTab(courseScraper, timetableTab));
         tabList.add(new CreditsTab(sscClient, student));
         tabList.add(timetableTab);

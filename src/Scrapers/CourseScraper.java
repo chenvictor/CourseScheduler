@@ -197,7 +197,8 @@ public class CourseScraper {
 
         subjectURL = SSCURL.COURSE_SUBJECTS.toString() + "&campuscd=" + campus.campus.getCode()
                 + "&sessyr=" + session.getYear() + "&sesscd=" + session.getCode();
-
+        //save subjectURL somewhere
+        client.setSetupURL(subjectURL);
         return subjectURL;
     }
 

@@ -4,10 +4,8 @@ import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.time.DayOfWeek;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class TimetableVisual {
 
@@ -20,9 +18,10 @@ public class TimetableVisual {
     private List<Section> sections = Collections.emptyList();
     private Map<Section, Color> colors = new HashMap<>();
     private Color[] colorArray = {
-            Color.LIGHT_GRAY, Color.BLUE, Color.DARK_GRAY, Color.GREEN, Color.YELLOW,
-            Color.RED, Color.PINK, Color.ORANGE, Color.MAGENTA
+            Color.BLUE, Color.RED, Color.MAGENTA,
+            Color.GRAY, Color.LIGHT_GRAY, Color.ORANGE, Color.PINK, Color.YELLOW, Color.GREEN
     };
+    private List<Color> darkColors = Arrays.asList(Arrays.copyOf(colorArray, 3));
     private int colorIndex = 0;
 
     public TimetableVisual() {
@@ -116,20 +115,46 @@ public class TimetableVisual {
     private void updateLegend() {
         term1.removeAll();
         term2.removeAll();
-        term1.add(new JLabel("Term 1"));
-        term2.add(new JLabel("Term 2"));
+        int term1Credits = 0;
+        int term2Credits = 0;
+        JLabel term1Label = new JLabel();
+        JLabel term2Label = new JLabel();
+        term1.add(term1Label);
+        term2.add(term2Label);
+        Set<Course> counted = new HashSet<>();
         for (Section section : sections) {
-            String sectionString = section.getCourse() + " " + section.getType() + ": " + section.getSectionCode();
+            String sectionString = getSectionString(section);
             JLabel sectionLabel = new JLabel(sectionString);
-            sectionLabel.setForeground(Color.WHITE);
-            sectionLabel.setBackground(colors.get(section));
+            Color c = colors.get(section);
+            if (darkColors.contains(c)) {
+                //use white text
+                sectionLabel.setForeground(Color.WHITE);
+            } else {
+                //black text
+                sectionLabel.setForeground(Color.BLACK);
+            }
+            sectionLabel.setBackground(c);
             sectionLabel.setOpaque(true);
             if(section.getBlocks().get(0).getTerm().equals("1")) {
                 term1.add(sectionLabel);
+                if (counted.add(section.getCourse())) {
+                    term1Credits += section.getCourse().getCredits();
+                }
             } else {
                 term2.add(sectionLabel);
+                if (counted.add(section.getCourse())) {
+                    term2Credits += section.getCourse().getCredits();
+                }
             }
         }
+        term1Label.setText(String.format("Term 1 - Credits: %d", term1Credits));
+        term2Label.setText(String.format("Term 2 - Credits: %d", term2Credits));
+    }
+
+    private String getSectionString(Section section) {
+        return section.getCourse() + " " +
+                section.getType() + " " +
+                section.getSectionCode();
     }
 
     public void update(List<Section> sections) {
@@ -223,6 +248,7 @@ public class TimetableVisual {
             if(combo != null) {
                 text = combo.getText();
                 color = combo.getColor();
+
             }
             setText(text);
             setBackground(color);

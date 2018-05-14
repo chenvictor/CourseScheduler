@@ -1,13 +1,21 @@
 package ui;
 
+import SSC.SSCClient;
+import SSC.SSCWorklist;
 import model.*;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.time.DayOfWeek;
 import java.util.*;
+import java.util.List;
 
 public class TimetableViewer {
+
+    private SSCClient client;
 
     /*
      *  Maximum number of course distributions to consider
@@ -27,11 +35,13 @@ public class TimetableViewer {
     private LinkedList<CourseCombination> baseTerm1;
     private LinkedList<CourseCombination> baseTerm2;
 
+    private List<Section> currentSections;
+
     private Map<CourseDistribution, List<CourseCombination>> term1Combinations;
     private Map<CourseDistribution, List<CourseCombination>> term2Combinations;
 
-    public TimetableViewer(TreeSet<CourseTermCombo> combos) {
-        //clone so we can work with it
+    public TimetableViewer(SSCClient client, TreeSet<CourseTermCombo> combos) {
+        this.client = client;
         term1 = new LinkedList<>();
         term2 = new LinkedList<>();
         term1Combinations = new LinkedHashMap<>();
@@ -54,13 +64,16 @@ public class TimetableViewer {
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         JPanel wrapper = new JPanel();
         wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
+        wrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
         JPanel distributionPanel = new JPanel();
         distributionPanel.setLayout(new BoxLayout(distributionPanel, BoxLayout.Y_AXIS));
         //EVENT HANDLING
         courseDistribution.addChangeListener(e -> selectedDistribution(courseDistribution.getSelectedIndex()));
         //
         distributionPanel.add(courseDistribution);
-        wrapper.add(new JLabel("Course Distribution:", SwingConstants.CENTER));
+        JButton worklist = new JButton("Save to Worklist");
+        worklist.addActionListener(e -> new SSCWorklist(currentSections).push(client));
+        wrapper.add(worklist);
         wrapper.add(distributionPanel);
         wrapper.add(visual.getContent());
         frame.add(wrapper);
@@ -87,12 +100,12 @@ public class TimetableViewer {
         term2Selector = new JComboBox<>();
         term1Selector.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                selectedTerm1(term1Selector.getSelectedIndex());
+                updateVisual();
             }
         });
         term2Selector.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                selectedTerm2(term2Selector.getSelectedIndex());
+                updateVisual();
             }
         });
         termPanel.add(term1Selector);
@@ -168,6 +181,12 @@ public class TimetableViewer {
         }
     }
 
+    /**
+     * Generate valid CourseCombinations recursively
+     * @param toAdd     List of Course SectionTypes to add (Lecture, Lab, Tutorial, etc)
+     * @param rsf
+     * @return
+     */
     private LinkedList<CourseCombination> generateCombinations(LinkedList<List<Section>> toAdd, LinkedList<CourseCombination> rsf) {
         if (toAdd.isEmpty()) {
             //base case
@@ -218,30 +237,23 @@ public class TimetableViewer {
         oldTabIdx = idx;
     }
 
-    private void selectedTerm1(int idx) {
-        updateVisual();
-    }
-
-    private void selectedTerm2(int idx) {
-        updateVisual();
-    }
-
     private void updateVisual() {
-        List<Section> sections = new LinkedList<>();
+        currentSections = new LinkedList<>();
         int distribIdx = courseDistribution.getSelectedIndex();
         CourseDistribution selected = distributions.get(distribIdx);
         List<CourseCombination> t1 = term1Combinations.get(selected);
         List<CourseCombination> t2 = term2Combinations.get(selected);
         int term1Idx = term1Selector.getSelectedIndex();
         if (term1Idx >= 0 && t1.size() != 0) {
-            sections.addAll(t1.get(term1Idx).sections);
+            currentSections.addAll(t1.get(term1Idx).sections);
         }
         int term2Idx = term2Selector.getSelectedIndex();
         if (term2Idx >= 0 && t2.size() != 0) {
-            sections.addAll(t2.get(term2Idx).sections);
+            currentSections.addAll(t2.get(term2Idx).sections);
         }
-        Collections.sort(sections);
-        visual.update(sections);
+        Collections.sort(currentSections);
+
+        visual.update(currentSections);
     }
 
     private class CourseDistribution implements Comparable<CourseDistribution>{
@@ -278,6 +290,10 @@ public class TimetableViewer {
             return this.term2;
         }
 
+        /**
+         * Return the difference in credits between terms
+         * @return  difference in credits between terms
+         */
         private int getDiff() {
             int term1Credits = 0;
             int term2Credits = 0;
@@ -337,7 +353,11 @@ public class TimetableViewer {
             return sections.iterator();
         }
 
-        //higher number is better
+        /**
+         * Calculate the "goodness" of a CourseCombination
+         * Higher numbers indicate better CourseCombinations
+         * @return  a goodness score
+         */
         private int goodness() {
             int level = 0;
 
@@ -401,6 +421,11 @@ public class TimetableViewer {
         }
     }
 
+    /**
+     * Helper function to calculate standard deviation
+     * @param list  values to use
+     * @return      standard deviation of the values
+     */
     private static double stdev(int[] list){
         double sum = 0.0;
         double mean;
@@ -421,6 +446,11 @@ public class TimetableViewer {
         return Math.sqrt(num/list.length);
     }
 
+    /**
+     * Helper function to convert Day to 0 based index
+     * @param day   Day to convert
+     * @return      0 based index of the Day
+     */
     private static int dayToIdx(DayOfWeek day) {
         return day.getValue() - 1;
     }

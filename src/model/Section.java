@@ -40,7 +40,7 @@ public class Section implements Comparable<Section> {
         return term;
     }
 
-    String getSectionCode() {
+    public String getSectionCode() {
         return sectionCode;
     }
 

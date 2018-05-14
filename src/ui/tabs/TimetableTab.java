@@ -1,5 +1,6 @@
 package ui.tabs;
 
+import SSC.SSCClient;
 import Scrapers.CourseScraper;
 import model.Course;
 import model.CourseTermCombo;
@@ -16,6 +17,7 @@ import java.util.TreeSet;
 
 public class TimetableTab implements Tab, Observer {
 
+    private SSCClient client;
     private CourseScraper scraper;
     private TreeSet<CourseTermCombo> courses;
     private List<Timetable> timetables;
@@ -26,7 +28,8 @@ public class TimetableTab implements Tab, Observer {
     private JLabel numCoursesLabel;
     private JLabel numCreditsLabel;
 
-    public TimetableTab(CourseScraper scraper) {
+    public TimetableTab(SSCClient client, CourseScraper scraper) {
+        this.client = client;
         this.scraper = scraper;
         courses = new TreeSet<>();
         visual = new TimetableVisual();
@@ -68,7 +71,7 @@ public class TimetableTab implements Tab, Observer {
 
     private void generateTimetables() {
         new Thread(() -> {
-            TimetableViewer viewer = new TimetableViewer(courses);
+            TimetableViewer viewer = new TimetableViewer(client, courses);
         }).start();
     }
 
